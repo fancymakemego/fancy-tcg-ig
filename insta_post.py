@@ -101,7 +101,11 @@ def caption_for(items):
     lines = ["New arrivals on eBay 🇯🇵 ({})".format(today), ""]
     for it in items:
         lines.append("▶ {} — ${:,.0f}".format(it["title"], it["price"]))
-    lines += ["", "All items ship from Japan with tracking.",
+    lines += ["",
+              "💬 Better price via DM! Buying directly through Instagram DM saves on fees, so I can offer a lower price than eBay.",
+              "Feel free to message me — even just to ask for a price quote. 😊",
+              "",
+              "All items ship from Japan with tracking.",
               "eBay store: fancy_tcg_japan (link in bio)", "", HASHTAGS]
     return "\n".join(lines)[:2200]
 
