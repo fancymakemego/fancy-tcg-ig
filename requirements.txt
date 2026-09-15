@@ -1,0 +1,4 @@
+truststore
+requests
+Pillow
+cryptography
