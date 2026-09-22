@@ -1,0 +1,65 @@
+name: instagram-daily-topic
+
+on:
+  schedule:
+    - cron: "0 11 * * *"    # 毎日 20:00 JST（米国東部の朝7時＝閲覧が伸びる時間帯）
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "投稿せず画像とキャプションだけ作る"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ig-topic
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  topic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      # 画像を先にコミット＆pushしておく（Instagramが raw URL を取りに来るため）
+      - name: build image
+        env:
+          EBAY_APP_ID: ${{ secrets.EBAY_APP_ID }}
+          EBAY_CERT_ID: ${{ secrets.EBAY_CERT_ID }}
+        run: python topics.py --dry-run
+      - name: push image
+        run: |
+          git config user.name "ig-bot"
+          git config user.email "ig-bot@users.noreply.github.com"
+          git add topic_images
+          if ! git diff --cached --quiet; then
+            git commit -m "topic image: $(date -u +%Y-%m-%d)"
+            git pull --rebase && git push
+          fi
+
+      - name: post to instagram
+        if: ${{ !inputs.dry_run }}
+        env:
+          EBAY_APP_ID: ${{ secrets.EBAY_APP_ID }}
+          EBAY_CERT_ID: ${{ secrets.EBAY_CERT_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_TOKEN_KEY: ${{ secrets.IG_TOKEN_KEY }}
+          IMAGE_REPO_RAW: https://raw.githubusercontent.com/${{ github.repository }}/main
+        run: python topics.py
+
+      - name: save state
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git add topics_posted.json ig_token.enc || true
+          if ! git diff --cached --quiet; then
+            git commit -m "topic posted: $(date -u +%Y-%m-%d)"
+            git pull --rebase && git push
+          fi
