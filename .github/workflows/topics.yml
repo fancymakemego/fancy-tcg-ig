@@ -2,11 +2,16 @@ name: instagram-daily-topic
 
 on:
   schedule:
-    - cron: "0 11 * * *"    # 毎日 20:00 JST（米国東部の朝7時＝閲覧が伸びる時間帯）
+    - cron: "17 11 * * *"    # 予備（20:17 JST）。本命は cron-job.org からの workflow_dispatch。
+                            # GitHubのscheduleは毎時0分が混み、4〜7時間遅れる（2026-10-02実測）
   workflow_dispatch:
     inputs:
       dry_run:
         description: "投稿せず画像とキャプションだけ作る"
+        type: boolean
+        default: false
+      force:
+        description: "今日すでに投稿済みでも投稿する"
         type: boolean
         default: false
 
@@ -29,13 +34,21 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
 
+      # cron-job.org と予備scheduleの両方から起動されるので、今日分が済んでいれば何もしない
+      - name: already posted today?
+        id: guard
+        if: ${{ !inputs.force }}
+        run: python guard.py topic
+
       # 画像を先にコミット＆pushしておく（Instagramが raw URL を取りに来るため）
       - name: build image
+        if: ${{ steps.guard.outputs.skip != 'true' }}
         env:
           EBAY_APP_ID: ${{ secrets.EBAY_APP_ID }}
           EBAY_CERT_ID: ${{ secrets.EBAY_CERT_ID }}
         run: python topics.py --dry-run
       - name: push image
+        if: ${{ steps.guard.outputs.skip != 'true' }}
         run: |
           git config user.name "ig-bot"
           git config user.email "ig-bot@users.noreply.github.com"
@@ -46,7 +59,7 @@ jobs:
           fi
 
       - name: post to instagram
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && steps.guard.outputs.skip != 'true' }}
         env:
           EBAY_APP_ID: ${{ secrets.EBAY_APP_ID }}
           EBAY_CERT_ID: ${{ secrets.EBAY_CERT_ID }}
@@ -56,7 +69,7 @@ jobs:
         run: python topics.py
 
       - name: save state
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && steps.guard.outputs.skip != 'true' }}
         run: |
           git add topics_posted.json ig_token.enc || true
           if ! git diff --cached --quiet; then
