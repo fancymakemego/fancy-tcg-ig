@@ -1,0 +1,212 @@
+<title>Fancy TCG Vault</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a slab-case grid — each card sits in a "case" tile like a graded slab, filters as a sticky rail on top */
+:root {
+  --bg: #eef0f3;
+  --panel: #ffffff;
+  --ink: #15181d;
+  --muted: #5b6370;
+  --line: #d7dbe2;
+  --accent: #c2362b;
+  --accent-ink: #ffffff;
+  --chip: #e3e6eb;
+  --label: #fbeeee;
+  --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Instrument Sans", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317; --panel: #1a1d23; --ink: #eceef2; --muted: #9aa2ae; --line: #2c3139;
+    --accent: #e0574b; --accent-ink: #160806; --chip: #252a31; --label: #2a1a19; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317; --panel: #1a1d23; --ink: #eceef2; --muted: #9aa2ae; --line: #2c3139;
+  --accent: #e0574b; --accent-ink: #160806; --chip: #252a31; --label: #2a1a19; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+}
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header.hero { padding-block: 40px 20px; display: grid; gap: 14px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(34px, 6vw, 56px); line-height: 1.02; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.lede { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stats b { color: var(--ink); font-weight: 500; }
+
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding-block: 8px 24px; }
+.how div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; }
+.how strong { font-family: var(--font-display); font-weight: 600; font-size: 16px; }
+.how span { color: var(--muted); font-size: 14px; }
+.cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-block: 0 26px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 10px 18px; font-weight: 600; text-decoration: none; border: 1px solid transparent; cursor: pointer; font: inherit; font-weight: 600; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn:focus-visible, .chip:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.handle { font-family: var(--font-mono); font-size: 14px; color: var(--muted); user-select: all; }
+
+.rail { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+.rail .wrap { padding-block: 10px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+#q { flex: 1 1 180px; min-width: 0; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 14px; }
+.count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-left: auto; }
+
+main { padding-block: 20px 40px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.slab { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.slab figure { margin: 0; position: relative; background: var(--chip); aspect-ratio: 3 / 4; display: grid; place-items: center; overflow: hidden; }
+.slab img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.grade { position: absolute; top: 10px; left: 10px; background: var(--accent); color: var(--accent-ink); font-family: var(--font-mono); font-size: 12px; padding: 3px 8px; border-radius: 6px; }
+.qty { position: absolute; top: 10px; right: 10px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); font-family: var(--font-mono); font-size: 12px; padding: 3px 8px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+.body { padding: 12px 14px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.name { font-family: var(--font-display); font-weight: 600; font-size: 17px; line-height: 1.2; margin: 0; text-wrap: balance; }
+.meta { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.game { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+details { font-size: 13px; }
+summary { cursor: pointer; color: var(--muted); }
+.certs { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 6px; font-family: var(--font-mono); font-size: 12px; max-height: 140px; overflow: auto; }
+.certs a { color: var(--ink); text-decoration-color: var(--line); }
+.ask { margin-top: 4px; justify-self: start; background: var(--label); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.empty { color: var(--muted); padding: 40px 0; text-align: center; }
+footer { border-top: 1px solid var(--line); padding-block: 22px 40px; color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px); }
+@media (prefers-reduced-motion: no-preference) { .slab { transition: transform .15s ease; } .slab:hover { transform: translateY(-2px); } }
+</style>
+
+<header class="wrap hero">
+  <div class="eyebrow">Fancy TCG Japan · PSA Vault inventory</div>
+  <h1>Graded Japanese cards, already in the PSA Vault</h1>
+  <p class="lede">Every slab below is stored in my PSA Vault in the US. Buy one and it can move to your own PSA Vault with a Vault-to-Vault transfer, so there is no international shipping and no customs.</p>
+  <div class="stats" id="stats"></div>
+</header>
+
+<section class="wrap how" aria-label="How buying works">
+  <div><strong>1. Pick a card</strong><span>Tap “Ask about this card” to copy its details.</span></div>
+  <div><strong>2. DM me on Instagram</strong><span>Paste the details and I’ll reply with a price.</span></div>
+  <div><strong>3. Vault-to-Vault transfer</strong><span>The slab moves to your PSA Vault account. Shipping to you is also possible.</span></div>
+</section>
+
+<div class="wrap cta">
+  <a class="btn btn-primary" href="https://ig.me/m/fancy_tcg_japan" target="_blank" rel="noopener">Message on Instagram</a>
+  <a class="btn btn-ghost" href="https://www.instagram.com/fancy_tcg_japan/" target="_blank" rel="noopener">View profile</a>
+  <span class="handle">@fancy_tcg_japan</span>
+</div>
+
+<div class="rail">
+  <div class="wrap">
+    <div class="chips" id="games" role="group" aria-label="Game"></div>
+    <div class="chips" id="grades" role="group" aria-label="Grade"></div>
+    <input id="q" type="search" placeholder="Search Charizard, McDonald's, 151…" aria-label="Search cards">
+    <span class="count" id="count"></span>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>No cards match. Clear the search or pick another filter.</p>
+</main>
+
+<footer class="wrap">
+  <div>Inventory as of __UPDATED__. Availability can change; a card may sell elsewhere before you message.</div>
+  <div>Prices on request. Every cert number links to PSA’s public cert lookup so you can verify the slab.</div>
+</footer>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function () {
+  const items = JSON.parse(document.getElementById("data").textContent);
+  const state = { game: "All", grade: "All", q: "" };
+  const $ = (id) => document.getElementById(id);
+  const total = items.reduce((n, it) => n + it.certs.length, 0);
+  $("stats").innerHTML = "<span><b>" + total + "</b> slabs</span><span><b>" + items.length + "</b> different cards</span><span><b>" +
+    items.filter((it) => it.grade === 10).reduce((n, it) => n + it.certs.length, 0) + "</b> PSA 10</span>";
+
+  function chips(el, values, key) {
+    values.forEach((v) => {
+      const b = document.createElement("button");
+      b.className = "chip"; b.type = "button"; b.textContent = v; b.setAttribute("aria-pressed", String(state[key] === v));
+      b.addEventListener("click", () => {
+        state[key] = v;
+        el.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c.textContent === v)));
+        render();
+      });
+      el.appendChild(b);
+    });
+  }
+  const games = ["All"].concat([...new Set(items.map((i) => i.game))]);
+  chips($("games"), games, "game");
+  chips($("grades"), ["All", "PSA 10", "PSA 9", "PSA 8 & below"], "grade");
+  $("q").addEventListener("input", (e) => { state.q = e.target.value.trim().toLowerCase(); render(); });
+
+  function gradeOk(g) {
+    if (state.grade === "All") return true;
+    if (state.grade === "PSA 10") return g === 10;
+    if (state.grade === "PSA 9") return g === 9;
+    return g <= 8;
+  }
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+  }
+  function ask(it) {
+    const text = "Hi! I'm interested in PSA " + it.grade + " " + it.name + " #" + it.num + " (" + it.year + " " + it.set + ") from your PSA Vault list.";
+    const done = () => toast("Copied. Paste it in an Instagram DM to @fancy_tcg_japan");
+    try {
+      navigator.clipboard.writeText(text).then(done, () => toast(text));
+    } catch (e) { toast(text); }
+  }
+  function card(it) {
+    const el = document.createElement("article");
+    el.className = "slab";
+    const n = it.certs.length;
+    el.innerHTML =
+      '<figure><img loading="lazy" alt=""><span class="grade"></span>' + (n > 1 ? '<span class="qty"></span>' : "") + "</figure>" +
+      '<div class="body"><div class="game"></div><h2 class="name"></h2><div class="meta"></div>' +
+      "<details><summary></summary><div class=\"certs\"></div></details>" +
+      '<button class="ask" type="button">Ask about this card</button></div>';
+    el.querySelector("img").src = it.img;
+    el.querySelector("img").alt = "PSA " + it.grade + " " + it.name;
+    el.querySelector(".grade").textContent = "PSA " + it.grade;
+    if (n > 1) el.querySelector(".qty").textContent = n + " in vault";
+    el.querySelector(".game").textContent = it.game;
+    el.querySelector(".name").textContent = it.name + " #" + it.num;
+    el.querySelector(".meta").textContent = it.year + " · " + it.set;
+    el.querySelector("summary").textContent = n > 1 ? n + " cert numbers" : "Cert " + it.certs[0];
+    const box = el.querySelector(".certs");
+    it.certs.forEach((c) => {
+      const a = document.createElement("a");
+      a.href = "https://www.psacard.com/cert/" + c; a.target = "_blank"; a.rel = "noopener"; a.textContent = c;
+      box.appendChild(a);
+    });
+    el.querySelector(".ask").addEventListener("click", () => ask(it));
+    return el;
+  }
+  function render() {
+    const grid = $("grid"); grid.innerHTML = "";
+    const list = items.filter((it) =>
+      (state.game === "All" || it.game === state.game) && gradeOk(it.grade) &&
+      (!state.q || (it.name + " " + it.set + " " + it.num + " " + it.year + " " + it.certs.join(" ")).toLowerCase().includes(state.q)));
+    list.forEach((it) => grid.appendChild(card(it)));
+    $("empty").hidden = list.length > 0;
+    const slabs = list.reduce((n, it) => n + it.certs.length, 0);
+    $("count").textContent = list.length + " cards · " + slabs + " slabs";
+  }
+  render();
+})();
+</script>
