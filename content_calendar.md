@@ -38,7 +38,7 @@
 
 | 日付（JST） | 型 | 中身（候補） | 状態 |
 |---|---|---|---|
-| 10/19（月） | Sunday Grail | Poncho-wearing Eevee #140 エーフィ柄 PSA 9 / #141 ブラッキー柄 PSA 8（Vault）— grail-20261019-1〜4.jpg ＋ grail-20261019-caption.txt | 準備済 |
+| 10/19（月） | Sunday Grail | Poncho-wearing Eevee #140 エーフィ柄 PSA 9 / #141 ブラッキー柄 PSA 8（Vault）— grail-20261019-1〜4.jpg ＋ grail-20261019-caption.txt | 済（10/20 00:26 JST、media_id 18411160642087882） |
 | 10/22（木） | Japan Exclusive | 7-Eleven Bento Box Pikachu PSA 7（2015 セブンイレブン弁当、Vault） | 予定 |
 | 10/26（月） | Sunday Grail | Mega Gengar ex SAR PSA 10（M2a、Vault）— ハロウィンの週 | 予定 |
 | 10/29（木） | 直接購入の流れ | DM → 見積もり → Wise → 追跡つき発送 → 関税 | 予定 |
