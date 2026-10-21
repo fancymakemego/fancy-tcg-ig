@@ -39,7 +39,7 @@
 | 日付（JST） | 型 | 中身（候補） | 状態 |
 |---|---|---|---|
 | 10/19（月） | Sunday Grail | Poncho-wearing Eevee #140 エーフィ柄 PSA 9 / #141 ブラッキー柄 PSA 8（Vault）— grail-20261019-1〜4.jpg ＋ grail-20261019-caption.txt | 済（10/20 00:26 JST、media_id 18411160642087882） |
-| 10/22（木） | Japan Exclusive | 7-Eleven Bento Box Pikachu PSA 7（2015 セブンイレブン弁当、Vault） | 予定 |
+| 10/22（木） | Japan Exclusive | 7-Eleven Bento Box Pikachu PSA 7（2015 セブンイレブン弁当、Vault）— fromjapan-20261022-1〜3.jpg ＋ fromjapan-20261022-caption.txt | 準備済 |
 | 10/26（月） | Sunday Grail | Mega Gengar ex SAR PSA 10（M2a、Vault）— ハロウィンの週 | 予定 |
 | 10/29（木） | 直接購入の流れ | DM → 見積もり → Wise → 追跡つき発送 → 関税 | 予定 |
 | 11/2（月） | Sunday Grail | Mega Charizard X ex SAR PSA 10 ×4（M2、Vault）— 夏時間終了後の初回 | 予定 |
@@ -53,7 +53,8 @@
 
 ## 回し方
 
-- Sunday Grail の画像は `python grail_post.py <日付>`（`GRAILS` に日付ごとの中身を足す。スラブ写真は PSA の
+- スラブ写真を使う投稿（Sunday Grail、From Japan の Japan Exclusive）の画像は `python grail_post.py <日付>`
+  （`GRAILS` に日付ごとの中身を足す。`kicker`／`prefix`／`zoom` で From Japan 用にもできる。スラブ写真は PSA の
   cert 画像を `vault/vault_dump.txt` のパスの thumbnail→large で取得）
 - 手作り投稿は **前日までに** Claude が画像（1080×1350、CLAUDE.md の「デザインの決まり」どおり）と
   キャプション（英語＋日本語訳）を `topic_images/` に用意し、状態を「準備済」にする

@@ -35,6 +35,27 @@ GRAILS = {
             "DM me for a price, one or the pair",
         ],
     },
+    "2026-10-22": {
+        "prefix": "fromjapan", "kicker": "FROM JAPAN  ·  JAPAN EXCLUSIVE", "why_kicker": "THE STORY",
+        "title": "7-Eleven Bento Pikachu",
+        "sub": "2015 Japanese promo  ·  154/XY-P",
+        "slabs": [
+            {"img": "206325578/large/jpORjp_E50SONrFp3y0syg.jpg", "label": "#154  BENTO BOX PIKACHU",
+             "grade": "PSA 7 NM", "cert": "155912803"},
+        ],
+        # スラブ写真の一部を拡大する1枚（[x0, y0, x1, y1] は large 画像上の座標）
+        "zoom": {"box": [206, 646, 936, 1124], "kicker": "LOOK CLOSER",
+                 "title": "A Pokémon picnic", "sub": "Rice balls, bread and an apple"},
+        "why_title": "Lunch came with a card",
+        "why": [
+            "Summer 2015: 7-Eleven Japan sold a Pokémon bento set by reservation only",
+            "The set came with a Pikachu-face lunch box, chopsticks, a handkerchief and this card",
+            "Pikachu, Chespin and Sylveon having a picnic, art by Kanako Eo",
+            "Its attack is literally \"Let's Eat Together\": heal 30 HP from both Active Pokémon",
+            "Never sold in packs: you had to order the bento in Japan",
+            "This one is in the PSA Vault: vault to vault, DM me for a price",
+        ],
+    },
 }
 
 
@@ -67,7 +88,7 @@ def main(date):
     outs = []
     # 1枚目: 全体
     im, dr = base()
-    dr.text((80, 100), "SUNDAY GRAIL", font=F(32, True), fill=ACCENT)
+    dr.text((80, 100), g.get("kicker", "SUNDAY GRAIL"), font=F(32, True), fill=ACCENT)
     dr.text((80, 145), g["title"], font=F(76, True), fill=FG)
     dr.text((80, 250), g["sub"], font=F(34), fill=SUB)
     n = len(imgs); gap = 40; cw = (W - 160 - gap * (n - 1)) // n
@@ -75,19 +96,27 @@ def main(date):
         x = 80 + i * (cw + gap)
         paste_fit(im, img, (x, 330, x + cw, 1200))
     outs.append(im)
-    # 2枚目以降: 1枚ずつ
-    for s, img in zip(g["slabs"], imgs):
+    # 2枚目以降: 1枚ずつ（1枚だけなら表紙で足りるので省く）
+    for s, img in zip(g["slabs"] if len(imgs) > 1 else [], imgs):
         im, dr = base()
         dr.text((80, 100), s["grade"], font=F(32, True), fill=ACCENT)
         dr.text((80, 145), s["label"], font=F(52, True), fill=FG)
         dr.text((W - 80, 112), "cert " + s["cert"], font=F(26), fill=SUB, anchor="ra")
         paste_fit(im, img, (80, 230, W - 80, 1200))
         outs.append(im)
+    if "zoom" in g:
+        z = g["zoom"]; im, dr = base()
+        dr.text((80, 100), z["kicker"], font=F(32, True), fill=ACCENT)
+        dr.text((80, 145), z["title"], font=F(76, True), fill=FG)
+        dr.text((80, 250), z["sub"], font=F(34), fill=SUB)
+        crop = imgs[0].crop(z["box"]).resize((920, round(920 * (z["box"][3] - z["box"][1]) / (z["box"][2] - z["box"][0]))), Image.LANCZOS)
+        paste_fit(im, crop, (80, 330, W - 80, 1200))
+        outs.append(im)
     # 最後: 解説
     im, dr = base()
-    dr.text((80, 100), "WHY COLLECTORS LOVE IT", font=F(32, True), fill=ACCENT)
+    dr.text((80, 100), g.get("why_kicker", "WHY COLLECTORS LOVE IT"), font=F(32, True), fill=ACCENT)
     dr.text((80, 145), g["why_title"], font=F(76, True), fill=FG)
-    y = 330
+    y = 310
     for b in g["why"]:
         dr.ellipse([84, y + 16, 100, y + 32], fill=ACCENT)
         for ln in textwrap.wrap(b, width=42):
@@ -95,7 +124,7 @@ def main(date):
         y += 30
     outs.append(im)
     for i, im in enumerate(outs, 1):
-        p = OUT / "grail-{}-{}.jpg".format(tag, i)
+        p = OUT / "{}-{}-{}.jpg".format(g.get("prefix", "grail"), tag, i)
         im.save(p, "JPEG", quality=92); print(p.name)
 
 
