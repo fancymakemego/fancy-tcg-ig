@@ -15,6 +15,8 @@
   --accent-ink: #ffffff;
   --chip: #e3e6eb;
   --label: #fbeeee;
+  --gold: #a87a12;
+  --gold-soft: #fbf4e2;
   --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
   --font-body: "Instrument Sans", "Helvetica Neue", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -22,12 +24,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111317; --panel: #1a1d23; --ink: #eceef2; --muted: #9aa2ae; --line: #2c3139;
-    --accent: #e0574b; --accent-ink: #160806; --chip: #252a31; --label: #2a1a19; color-scheme: dark;
+    --accent: #e0574b; --accent-ink: #160806; --chip: #252a31; --label: #2a1a19; --gold: #e3b94e; --gold-soft: #26211a; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111317; --panel: #1a1d23; --ink: #eceef2; --muted: #9aa2ae; --line: #2c3139;
-  --accent: #e0574b; --accent-ink: #160806; --chip: #252a31; --label: #2a1a19; color-scheme: dark;
+  --accent: #e0574b; --accent-ink: #160806; --chip: #252a31; --label: #2a1a19; --gold: #e3b94e; --gold-soft: #26211a; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
@@ -83,6 +85,16 @@ summary { cursor: pointer; color: var(--muted); }
 .empty { color: var(--muted); padding: 40px 0; text-align: center; }
 footer { border-top: 1px solid var(--line); padding-block: 22px 40px; color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px); }
+.spot { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 28px; align-items: center; background: var(--gold-soft); border: 1px solid var(--gold); border-radius: 16px; padding: 22px; margin-bottom: 24px; }
+.spot figure { margin: 0; background: var(--panel); border-radius: 12px; padding: 12px; display: grid; place-items: center; }
+.spot img { width: 100%; height: auto; display: block; }
+.spot .tag { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+.spot h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(30px, 5vw, 46px); line-height: 1.04; margin: 6px 0 4px; }
+.spot .meta { font-size: 14px; }
+.spot p { margin: 12px 0 16px; max-width: 58ch; }
+.spot .row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.spot .cert { font-family: var(--font-mono); font-size: 13px; color: var(--ink); }
+@media (max-width: 640px) { .spot { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 16px; } .spot figure { max-width: 280px; justify-self: center; } }
 @media (prefers-reduced-motion: no-preference) { .slab { transition: transform .15s ease; } .slab:hover { transform: translateY(-2px); } }
 </style>
 
@@ -92,6 +104,8 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 40px; color: var
   <p class="lede">Every slab below is stored in my PSA Vault in the US. Buy one and it can move to your own PSA Vault with a Vault-to-Vault transfer, so there is no international shipping and no customs.</p>
   <div class="stats" id="stats"></div>
 </header>
+
+<div class="wrap" id="spots"></div>
 
 <section class="wrap how" aria-label="How buying works">
   <div><strong>1. Pick a card</strong><span>Tap “Ask about this card” to copy its details.</span></div>
@@ -197,6 +211,22 @@ footer { border-top: 1px solid var(--line); padding-block: 22px 40px; color: var
     el.querySelector(".ask").addEventListener("click", () => ask(it));
     return el;
   }
+  items.filter((it) => it.featured).forEach((it) => {
+    const el = document.createElement("section");
+    el.className = "spot"; el.setAttribute("aria-label", "Spotlight");
+    el.innerHTML =
+      '<figure><img alt=""></figure><div><div class="tag">Spotlight · Gold Star</div><h2></h2><div class="meta"></div><p></p>' +
+      '<div class="row"><button class="btn btn-primary" type="button">Ask about this card</button><a class="cert" target="_blank" rel="noopener"></a></div></div>';
+    el.querySelector("img").src = it.img;
+    el.querySelector("img").alt = "PSA " + it.grade + " " + it.name;
+    el.querySelector("h2").textContent = it.name + " · PSA " + it.grade;
+    el.querySelector(".meta").textContent = it.year + " " + it.game + " Japanese · " + it.set + " · #" + it.num;
+    el.querySelector("p").textContent = it.featured;
+    const a = el.querySelector(".cert");
+    a.href = "https://www.psacard.com/cert/" + it.certs[0]; a.textContent = "Verify cert " + it.certs[0];
+    el.querySelector("button").addEventListener("click", () => ask(it));
+    $("spots").appendChild(el);
+  });
   function render() {
     const grid = $("grid"); grid.innerHTML = "";
     const list = items.filter((it) =>

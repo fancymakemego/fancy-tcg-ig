@@ -31,13 +31,18 @@ eBay の出品・監視・利益計算はあちらのリポジトリと CLAUDE.m
   新着カルーセルは eBay の価格を出す（DM ならそれより安いと比べてもらう）。Vault 品・手作り投稿は価格を載せず DM で出す
 - 手作り投稿の曜日ごとの型と予定は **content_calendar.md**（月 9:00 Sunday Grail／木 9:00 From Japan）。
   前日までに準備して、状態の列を更新する
+- **週次トレンド調査**（2026-11-01 開始）: 毎週日曜 21:00 にデスクトップアプリの定期タスク
+  `weekly-tcg-trend-research` が並列エージェントで YouTube／Instagram・TikTok／X・Reddit のバズ話題を調べ、
+  `trends/YYYY-MM-DD.md` と content_calendar.md の「提案」行（火・水・金・土 9:00 枠）に投稿案を書く。
+  投稿・commit はしないので、ユーザーが選んでから画像を作り投稿する。毎日 20:17 の自動情報投稿（topics.yml）はこれに置き換えて
+  GitHub 上で無効化した（cron-job.org 側のジョブも止めてよい）
 
 ## 投稿の種類と仕組み
 
 | 種類 | スクリプト | ワークフロー | 時刻（JST） | 二重投稿防止 |
 |---|---|---|---|---|
 | 新着出品カルーセル | insta_post.py | post.yml | 10:17 | posted.json（guard.py post） |
-| 日本のポケカ情報（ニュース／相場） | topics.py | topics.yml | 20:17 | topics_posted.json（guard.py topic） |
+| 日本のポケカ情報（ニュース／相場） | topics.py | topics.yml | **停止中**（2026-11-01、見られていないため） | topics_posted.json（guard.py topic） |
 | 手作り投稿（1回だけ） | custom_post.py | custom.yml（手動のみ） | 任意 | custom_posted.json |
 
 - 本命の起動は **cron-job.org から workflow_dispatch**。GitHub の `schedule:` は混雑で4〜7時間
@@ -78,7 +83,7 @@ PSA の Vault to Vault（2026-10 開始）で、Vault 内の鑑定品を発送�
 
 - 公開URL: https://claude.ai/artifact/JvpTtbeBCP2V4vbj5fj89s （「リンクを知っている全員」で共有済み）
 - 価格は載せない（"Prices on request"・DM 誘導）。cert 番号は PSA の公開 cert ページにリンク
-- 2026-10-18 時点: 118枚 / 33種類
+- 2026-11-01 時点: 82枚 / 33種類。上部スポットライトは Pikachu ★ Gold Star PSA 4（`build_data.py` の `FEATURED` に cert と紹介文）
 
 ### 更新手順（「vault更新して」と言われたら）
 

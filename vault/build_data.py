@@ -13,6 +13,12 @@ truststore.inject_into_ssl()
 HERE = Path(__file__).parent
 CDN = "https://d1htnxwo4o0jhw.cloudfront.net/cert/"
 LINE = re.compile(r"^(#\S+) (.+?) ((?:19|20)\d\d .+) (PSA \d+) (\d{6,}) (\$[\d,.]+) (.+) (\S+\.jpg)$")
+# ページ上部のスポットライトで大きく見せる cert → 紹介文（英語）
+FEATURED = {
+    "176570699": "Pikachu ★ 001/002 from the 2005 Japanese Gift Box. Gold Star cards are among the most "
+                 "chased Pokémon cards of the 2000s, and a Japanese Pikachu ★ rarely comes up. "
+                 "Graded PSA 4 and already in my PSA Vault, so it moves vault to vault with no shipping from Japan.",
+}
 KEEP_UPPER = {"GX", "V", "VMAX", "VSTAR", "SAR", "AR", "SR", "UR", "HR", "BW", "SV", "SM", "XY", "ST", "PSA",
               "M-P", "SV-P", "S", "US"}
 
@@ -63,6 +69,8 @@ def game(setline):
         return "One Piece"
     if "YU-GI-OH" in s:
         return "Yu-Gi-Oh!"
+    if "TOPPS" in s:
+        return "Baseball"
     return "Pokémon"
 
 
@@ -88,7 +96,10 @@ for r in rows:
 
 items = sorted(groups.values(), key=lambda g: (-g["est"], -g["grade"]))
 for g in items:
-    url = CDN + g["img"]
+    feat = next((FEATURED[c] for c in g["certs"] if c in FEATURED), None)
+    if feat:
+        g["featured"] = feat
+    url = CDN + (g["img"].replace("/thumbnail/", "/large/") if feat else g["img"])
     data = urllib.request.urlopen(url, timeout=30).read()
     g["img"] = "data:image/jpeg;base64," + base64.b64encode(data).decode()
     g["certs"].sort()
