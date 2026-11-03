@@ -75,7 +75,11 @@ eBay の出品・監視・利益計算はあちらのリポジトリと CLAUDE.m
 - **画像に絵文字を入れない**（フォントに無く豆腐になる）。絵文字はキャプション側で使う
 - **他人の写真・公式画像は使わない**（権利問題）。使ってよいのは自前の描画、自分の出品写真、
   自分の PSA スラブの写真（PSA の cert 画像）
-- ハッシュタグは各スクリプトの `HASHTAGS` 定数。15個前後
+- **キャプションの1行目は正確なカード名**（例: "PSA 10 Japanese Charizard ex SAR 151"）。Instagram 検索は本文のキーワードを見るので、
+  飾りの見出しより先にカード名を出す。新着カルーセルは最高額の出品タイトルを1行目に使う（insta_post.py の `caption_for`）
+- **ハッシュタグは5個まで**（2025-12 以降の上限。それ以上は付けない）。定番2個（#japanesepokemoncards #pokemoncards）＋
+  投稿内容に合う3個（#psa10 #charizard #pikachu #goldstar など）。新着カルーセルは insta_post.py の `hashtags_for` が自動で選ぶ
+- 名前欄（プロフィールの Name）は検索対象。検索語入りにするのがよい（例: Fancy TCG Japan | Japanese Pokémon & PSA。変更はユーザーがアプリで）
 
 ## PSA Vault 在庫ページ（vault/）
 

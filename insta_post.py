@@ -38,9 +38,16 @@ IMAGE_REPO_RAW = os.environ.get("IMAGE_REPO_RAW", "")   # 例: https://raw.githu
 IG_API = "https://graph.instagram.com/v21.0"
 JST = timezone(timedelta(hours=9))
 
-HASHTAGS = ("#pokemoncards #pokemontcg #pokemoncard #japanesepokemoncards #pokemonjapan "
-            "#ポケカ #ポケモンカード #goldstar #pokemonpromo #vintagepokemon #pokemoncollector "
-            "#ebay #ebayseller #cardcollector #tcg")
+# ハッシュタグは5個まで（2025-12 以降の上限）。固定2個＋出品タイトルから選ぶ3個
+HASHTAGS_BASE = ["#japanesepokemoncards", "#pokemoncards"]
+# タイトルに含まれる語 → タグ。上から順に優先し、高い出品から当てはめる
+HASHTAG_RULES = [
+    ("psa 10", "#psa10"), ("psa", "#psagraded"), ("gold star", "#goldstar"), ("charizard", "#charizard"),
+    ("pikachu", "#pikachu"), ("one piece", "#onepiececardgame"), ("promo", "#pokemonpromo"),
+    ("1st edition", "#vintagepokemon"), ("old back", "#vintagepokemon"), ("eevee", "#eevee"),
+    ("umbreon", "#umbreon"), ("lugia", "#lugia"),
+]
+HASHTAG_FILL = ["#pokemontcg", "#pokemoncollector", "#pokemonjapan"]
 
 
 # ---------- eBay ----------
@@ -96,9 +103,28 @@ def make_image(item):
     return out
 
 
+def hashtags_for(items):
+    tags = list(HASHTAGS_BASE)
+    for it in sorted(items, key=lambda x: -x["price"]):
+        t = it["title"].lower()
+        for word, tag in HASHTAG_RULES:
+            if tag == "#psagraded" and "#psa10" in tags:   # PSA 系は1個で足りる
+                continue
+            if word in t and tag not in tags and len(tags) < 5:
+                tags.append(tag)
+    for tag in HASHTAG_FILL:
+        if len(tags) < 5 and tag not in tags:
+            tags.append(tag)
+    return " ".join(tags[:5])
+
+
 def caption_for(items):
-    today = datetime.now(JST).strftime("%b %d")
-    lines = ["New arrivals on eBay 🇯🇵 ({})".format(today), ""]
+    # 1行目は検索に効くので、いちばん高い出品のカード名をそのまま出す
+    top = max(items, key=lambda x: x["price"])
+    head = top["title"]
+    if len(items) > 1:
+        head += " + {} more Japanese cards".format(len(items) - 1)
+    lines = [head + ", new from Japan 🇯🇵", ""]
     for it in items:
         lines.append("▶ {} — ${:,.0f}".format(it["title"], it["price"]))
     lines += ["",
@@ -106,7 +132,7 @@ def caption_for(items):
               "Feel free to message me — even just to ask for a price quote. 😊",
               "",
               "All items ship from Japan with tracking.",
-              "eBay store: fancy_tcg_japan (link in bio)", "", HASHTAGS]
+              "eBay store: fancy_tcg_japan (link in bio)", "", hashtags_for(items)]
     return "\n".join(lines)[:2200]
 
 
