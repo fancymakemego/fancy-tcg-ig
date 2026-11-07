@@ -56,6 +56,23 @@ GRAILS = {
             "This one is in the PSA Vault: vault to vault, DM me for a price",
         ],
     },
+    "2026-11-07": {
+        "prefix": "psa10", "kicker": "CONSECUTIVE CERTS  ·  GEM MINT 10",
+        "title": "Back-to-back PSA 10s",
+        "sub": "Mewtwo ex SAR & FUR  ·  Japanese 30th Celebration",
+        "sequential": True,
+        "slabs": [
+            {"img": "223423996/large/3i_-P6rm9kOT93O9nySIkQ.jpg", "label": "#128  MEWTWO ex SAR",
+             "grade": "PSA 10 GEM MINT", "cert": "177778178"},
+            {"img": "223423997/large/XygMJPzp0EWkqn1v5bFjHQ.jpg", "label": "#134  MEWTWO ex FUR",
+             "grade": "PSA 10 GEM MINT", "cert": "177778179"},
+        ],
+        # PSA ラベル部分を縦に並べて連番を見せる1枚（pop は 2026-11 時点）
+        "labels": {"box": [62, 78, 1078, 378], "kicker": "THE PROOF", "title": "One cert apart",
+                   "sub": "177778178 and 177778179",
+                   "lines": ["#128 Special Art Rare: PSA 10 pop 31", "#134 Futuristic Rare: PSA 10 pop 115",
+                             "Nothing grades higher (Nov 2026)"]},
+    },
 }
 
 
@@ -94,8 +111,27 @@ def main(date):
     n = len(imgs); gap = 40; cw = (W - 160 - gap * (n - 1)) // n
     for i, img in enumerate(imgs):
         x = 80 + i * (cw + gap)
-        paste_fit(im, img, (x, 330, x + cw, 1200))
+        paste_fit(im, img, (x, 330, x + cw, 1085 if g.get("sequential") else 1200))
+        if g.get("sequential"):   # cert の末尾3桁を黄色で強調
+            c = g["slabs"][i]["cert"]; head, tail = c[:-3], c[-3:]; f = F(52, True)
+            w = dr.textlength(head, font=f) + dr.textlength(tail, font=f); tx = x + (cw - w) / 2
+            dr.text((tx, 1110), head, font=f, fill=FG)
+            dr.text((tx + dr.textlength(head, font=f), 1110), tail, font=f, fill=ACCENT)
     outs.append(im)
+    if "labels" in g:
+        z = g["labels"]; im, dr = base()
+        dr.text((80, 100), z["kicker"], font=F(32, True), fill=ACCENT)
+        dr.text((80, 145), z["title"], font=F(76, True), fill=FG)
+        dr.text((80, 250), z["sub"], font=F(34), fill=SUB)
+        y = 330
+        for img in imgs:
+            crop = img.crop(z["box"]); h = round(920 * crop.height / crop.width)
+            im.paste(crop.resize((920, h), Image.LANCZOS), (80, y)); y += h + 24
+        y += 16
+        for ln in z["lines"]:
+            dr.ellipse([84, y + 16, 100, y + 32], fill=ACCENT)
+            dr.text((124, y), ln, font=F(38), fill=FG); y += 62
+        outs.append(im)
     # 2枚目以降: 1枚ずつ（1枚だけなら表紙で足りるので省く）
     for s, img in zip(g["slabs"] if len(imgs) > 1 else [], imgs):
         im, dr = base()
@@ -113,16 +149,17 @@ def main(date):
         paste_fit(im, crop, (80, 330, W - 80, 1200))
         outs.append(im)
     # 最後: 解説
-    im, dr = base()
-    dr.text((80, 100), g.get("why_kicker", "WHY COLLECTORS LOVE IT"), font=F(32, True), fill=ACCENT)
-    dr.text((80, 145), g["why_title"], font=F(76, True), fill=FG)
-    y = 310
-    for b in g["why"]:
-        dr.ellipse([84, y + 16, 100, y + 32], fill=ACCENT)
-        for ln in textwrap.wrap(b, width=42):
-            dr.text((124, y), ln, font=F(38), fill=FG); y += 50
-        y += 30
-    outs.append(im)
+    if "why" in g:
+        im, dr = base()
+        dr.text((80, 100), g.get("why_kicker", "WHY COLLECTORS LOVE IT"), font=F(32, True), fill=ACCENT)
+        dr.text((80, 145), g["why_title"], font=F(76, True), fill=FG)
+        y = 310
+        for b in g["why"]:
+            dr.ellipse([84, y + 16, 100, y + 32], fill=ACCENT)
+            for ln in textwrap.wrap(b, width=42):
+                dr.text((124, y), ln, font=F(38), fill=FG); y += 50
+            y += 30
+        outs.append(im)
     for i, im in enumerate(outs, 1):
         p = OUT / "{}-{}-{}.jpg".format(g.get("prefix", "grail"), tag, i)
         im.save(p, "JPEG", quality=92); print(p.name)
